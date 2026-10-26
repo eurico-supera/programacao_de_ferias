@@ -1,0 +1,629 @@
+
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f7fb">
+    <title>Calendário de Férias</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: #182230;
+        background: #f5f7fb;
+        font-synthesis: none;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-width: 320px;
+        min-height: 100vh;
+        margin: 0;
+      }
+
+      main {
+        display: grid;
+        min-height: 100vh;
+        place-items: center;
+        padding: 40px 20px;
+      }
+
+      .calendar-layout {
+        width: min(100%, 1120px);
+      }
+
+      .calendar {
+        width: 100%;
+        padding: 32px;
+        border: 1px solid #e5eaf1;
+        border-radius: 20px;
+        background: #fff;
+        box-shadow: 0 18px 50px rgb(24 34 48 / 8%);
+      }
+
+      .vacation-form {
+        margin-top: 20px;
+        padding: 24px 32px;
+        border: 1px solid #e5eaf1;
+        border-radius: 20px;
+        background: #fff;
+        box-shadow: 0 18px 50px rgb(24 34 48 / 8%);
+      }
+
+      .vacation-form h2 {
+        margin: 0 0 18px;
+        font-size: 1.15rem;
+        font-weight: 680;
+      }
+
+      .form-fields {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr;
+        gap: 16px;
+      }
+
+      .vacation-form form {
+        display: grid;
+        gap: 16px;
+      }
+
+      .form-field {
+        display: grid;
+        gap: 7px;
+        color: #526176;
+        font-size: 0.85rem;
+        font-weight: 600;
+      }
+
+      .form-field input {
+        width: 100%;
+        min-height: 44px;
+        padding: 9px 12px;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        background: #fff;
+        color: #182230;
+        font: inherit;
+      }
+
+      .date-input-wrapper {
+        position: relative;
+      }
+
+      .date-input-wrapper > input[type="text"] {
+        padding-right: 52px;
+      }
+
+      .calendar-picker-button {
+        position: absolute;
+        top: 1px;
+        right: 1px;
+        min-width: 42px;
+        width: 42px;
+        height: 42px;
+        border: 0;
+        background: transparent;
+        font-size: 1.1rem;
+        pointer-events: none;
+      }
+
+      .date-input-wrapper > input[type="date"] {
+        position: absolute;
+        top: 1px;
+        right: 1px;
+        width: 42px;
+        height: 42px;
+        padding: 0;
+        border: 0;
+        opacity: 0;
+        cursor: pointer;
+      }
+
+      .form-field input:focus-visible {
+        outline: 3px solid #b9d8ff;
+        outline-offset: 2px;
+      }
+
+      .calendar-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 28px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(1.55rem, 4vw, 2rem);
+        font-weight: 720;
+        letter-spacing: -0.04em;
+        text-transform: capitalize;
+      }
+
+      .controls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      button {
+        min-width: 42px;
+        height: 42px;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        background: #fff;
+        color: #344256;
+        font: inherit;
+        cursor: pointer;
+        transition: background 120ms ease, border-color 120ms ease;
+      }
+
+      button:hover {
+        border-color: #b9c8da;
+        background: #f7f9fc;
+      }
+
+      button:focus-visible {
+        outline: 3px solid #b9d8ff;
+        outline-offset: 2px;
+      }
+
+      .today-button {
+        width: auto;
+        padding: 0 14px;
+        color: #1769d2;
+        font-size: 0.88rem;
+        font-weight: 650;
+      }
+
+      .weekdays,
+      .days {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+      }
+
+      .weekdays {
+        padding-bottom: 10px;
+        border-bottom: 1px solid #edf0f5;
+      }
+
+      .weekday {
+        color: #758398;
+        font-size: 0.78rem;
+        font-weight: 650;
+        text-align: center;
+      }
+
+      .days {
+        row-gap: 8px;
+        padding-top: 12px;
+      }
+
+      .day {
+        min-height: 88px;
+        padding: 9px;
+        border-radius: 12px;
+        background: #fbfcfe;
+        color: #344256;
+        font-size: 0.95rem;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .day-number {
+        display: block;
+        font-weight: 650;
+      }
+
+      .vacation-list {
+        display: grid;
+        gap: 4px;
+        margin: 6px 0 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .vacation-entry {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 4px;
+        padding: 5px 6px;
+        border-left: 2px solid var(--vacation-color);
+        border-radius: 4px;
+        background: var(--vacation-background);
+        color: #344256;
+        font-size: 0.72rem;
+        font-weight: 650;
+        line-height: 1.3;
+        overflow-wrap: anywhere;
+      }
+
+      .remove-vacation {
+        flex: 0 0 20px;
+        min-width: 20px;
+        width: 20px;
+        height: 20px;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: #526176;
+        font-size: 1rem;
+        line-height: 1;
+      }
+
+      .remove-vacation:hover {
+        border: 0;
+        background: #d5e7ff;
+        color: #124f9e;
+      }
+
+      .add-vacation {
+        justify-self: start;
+        min-width: 0;
+        padding: 0 16px;
+        background: #1769d2;
+        color: #fff;
+        font-size: 0.9rem;
+        font-weight: 650;
+      }
+
+      .add-vacation:hover {
+        border-color: #124f9e;
+        background: #124f9e;
+      }
+
+      .day.outside-month {
+        background: transparent;
+        color: #b5bfcc;
+      }
+
+      .day.is-today {
+        box-shadow: inset 0 0 0 2px #1769d2;
+        color: #124f9e;
+        font-weight: 700;
+      }
+
+      @media (max-width: 520px) {
+        main {
+          padding: 16px 12px;
+        }
+
+        .calendar-layout {
+          width: 100%;
+        }
+
+        .calendar {
+          padding: 22px 16px;
+          border-radius: 16px;
+        }
+
+        .vacation-form {
+          padding: 20px 16px;
+          border-radius: 16px;
+        }
+
+        .form-fields {
+          grid-template-columns: 1fr;
+          gap: 12px;
+        }
+
+        .calendar-header {
+          align-items: flex-start;
+          margin-bottom: 22px;
+        }
+
+        .controls {
+          gap: 5px;
+        }
+
+        button {
+          min-width: 38px;
+          height: 38px;
+        }
+
+        .today-button {
+          padding: 0 10px;
+        }
+
+        .day {
+          min-height: 56px;
+          padding: 5px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="calendar-layout">
+        <section class="calendar" aria-labelledby="month-title">
+          <header class="calendar-header">
+            <h1 id="month-title" aria-live="polite"></h1>
+            <nav class="controls" aria-label="Navegação do calendário">
+              <button id="previous-month" type="button" aria-label="Mês anterior">‹</button>
+              <button id="current-month" class="today-button" type="button">Hoje</button>
+              <button id="next-month" type="button" aria-label="Próximo mês">›</button>
+            </nav>
+          </header>
+
+          <div class="weekdays" aria-hidden="true">
+            <span class="weekday">Dom</span>
+            <span class="weekday">Seg</span>
+            <span class="weekday">Ter</span>
+            <span class="weekday">Qua</span>
+            <span class="weekday">Qui</span>
+            <span class="weekday">Sex</span>
+            <span class="weekday">Sáb</span>
+          </div>
+          <div id="calendar-days" class="days" role="grid" aria-label="Dias do mês"></div>
+        </section>
+
+        <section class="vacation-form" aria-labelledby="vacation-form-title">
+          <h2 id="vacation-form-title">Dados das férias</h2>
+          <form id="vacation-form">
+            <div class="form-fields">
+              <label class="form-field" for="employee-name">
+                Nome do funcionário
+                <input id="employee-name" name="employeeName" type="text" autocomplete="name" required>
+              </label>
+              <label class="form-field" for="vacation-start">
+                Início das férias
+                <span class="date-input-wrapper">
+                  <input id="vacation-start" name="vacationStart" type="text" inputmode="numeric" placeholder="dd/mm/aaaa" pattern="\d{2}/\d{2}/\d{4}" title="Use o formato dia/mês/ano (dd/mm/aaaa)." required>
+                  <button class="calendar-picker-button" type="button" aria-hidden="true">▦</button>
+                  <input class="native-date-picker" type="date" aria-label="Selecionar início das férias" tabindex="-1">
+                </span>
+              </label>
+              <label class="form-field" for="vacation-end">
+                Término das férias
+                <span class="date-input-wrapper">
+                  <input id="vacation-end" name="vacationEnd" type="text" inputmode="numeric" placeholder="dd/mm/aaaa" pattern="\d{2}/\d{2}/\d{4}" title="Use o formato dia/mês/ano (dd/mm/aaaa)." required>
+                  <button class="calendar-picker-button" type="button" aria-hidden="true">▦</button>
+                  <input class="native-date-picker" type="date" aria-label="Selecionar término das férias" tabindex="-1">
+                </span>
+              </label>
+            </div>
+            <button class="add-vacation" type="submit">Adicionar férias</button>
+          </form>
+        </section>
+      </div>
+    </main>
+
+    <script>
+      const monthTitle = document.querySelector("#month-title");
+      const calendarDays = document.querySelector("#calendar-days");
+      const vacationForm = document.querySelector("#vacation-form");
+      const employeeNameInput = document.querySelector("#employee-name");
+      const vacationStartInput = document.querySelector("#vacation-start");
+      const vacationEndInput = document.querySelector("#vacation-end");
+      const datePickers = document.querySelectorAll(".native-date-picker");
+      const today = new Date();
+      let displayedMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      let nextVacationId = 1;
+      const vacations = [];
+      const vacationColors = [
+        ["#1769d2", "#e8f2ff"],
+        ["#b54708", "#fff1e6"],
+        ["#16804a", "#e6f7ee"],
+        ["#8b45a8", "#f5eafa"],
+        ["#c12b55", "#ffebf0"],
+        ["#087e8b", "#e4f7f8"],
+      ];
+
+      const monthFormatter = new Intl.DateTimeFormat("pt-BR", {
+        month: "long",
+        year: "numeric",
+      });
+
+      function parseBrazilianDate(value) {
+        const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value);
+        if (!match) {
+          return null;
+        }
+
+        const [, day, month, year] = match;
+        const date = new Date(0);
+        date.setFullYear(Number(year), Number(month) - 1, Number(day));
+        if (
+          Number(year) === 0 ||
+          date.getFullYear() !== Number(year) ||
+          date.getMonth() !== Number(month) - 1 ||
+          date.getDate() !== Number(day)
+        ) {
+          return null;
+        }
+
+        return `${year}-${month}-${day}`;
+      }
+
+      vacationStartInput.addEventListener("input", () => vacationStartInput.setCustomValidity(""));
+      vacationEndInput.addEventListener("input", () => vacationEndInput.setCustomValidity(""));
+
+      for (const input of [vacationStartInput, vacationEndInput]) {
+        input.addEventListener("input", () => {
+          const digits = input.value.replace(/\D/g, "").slice(0, 8);
+          input.value = digits
+            .replace(/^(\d{2})(\d)/, "$1/$2")
+            .replace(/^(\d{2}\/\d{2})(\d)/, "$1/$2");
+          const parsedDate = parseBrazilianDate(input.value);
+          input.closest(".date-input-wrapper").querySelector(".native-date-picker").value = parsedDate || "";
+        });
+      }
+
+      for (const picker of datePickers) {
+        const textInput = picker.closest(".date-input-wrapper").querySelector('input[type="text"]');
+        picker.addEventListener("change", () => {
+          if (!picker.value) {
+            return;
+          }
+          const [year, month, day] = picker.value.split("-");
+          textInput.value = `${day}/${month}/${year}`;
+          textInput.setCustomValidity("");
+        });
+      }
+
+      function renderVacationsForDay(day, dateKey) {
+        const dayVacations = vacations.filter(
+          (vacation) => vacation.startDate <= dateKey && vacation.endDate >= dateKey
+        );
+        if (dayVacations.length === 0) {
+          return;
+        }
+
+        const vacationList = document.createElement("ul");
+        vacationList.className = "vacation-list";
+        for (const vacation of dayVacations) {
+          const entry = document.createElement("li");
+          entry.className = "vacation-entry";
+          const [color, background] = vacationColors[(vacation.id - 1) % vacationColors.length];
+          entry.style.setProperty("--vacation-color", color);
+          entry.style.setProperty("--vacation-background", background);
+
+          const employeeName = document.createElement("span");
+          employeeName.textContent = vacation.employeeName;
+          entry.append(employeeName);
+
+          const removeButton = document.createElement("button");
+          removeButton.className = "remove-vacation";
+          removeButton.type = "button";
+          removeButton.textContent = "×";
+          removeButton.setAttribute("aria-label", `Remover férias de ${vacation.employeeName}`);
+          removeButton.addEventListener("click", () => {
+            const vacationIndex = vacations.findIndex((item) => item.id === vacation.id);
+            if (vacationIndex !== -1) {
+              vacations.splice(vacationIndex, 1);
+              renderCalendar();
+            }
+          });
+          entry.append(removeButton);
+          vacationList.append(entry);
+        }
+        day.append(vacationList);
+      }
+
+      function renderCalendar() {
+        const year = displayedMonth.getFullYear();
+        const month = displayedMonth.getMonth();
+        const firstWeekday = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const daysInPreviousMonth = new Date(year, month, 0).getDate();
+        const cellCount = Math.ceil((firstWeekday + daysInMonth) / 7) * 7;
+
+        monthTitle.textContent = monthFormatter.format(displayedMonth);
+        calendarDays.replaceChildren();
+
+        for (let cell = 0; cell < cellCount; cell += 1) {
+          const dateNumber = cell - firstWeekday + 1;
+          const day = document.createElement("div");
+          day.className = "day";
+          day.setAttribute("role", "gridcell");
+
+          if (dateNumber < 1) {
+            const previousMonthDay = daysInPreviousMonth + dateNumber;
+            day.textContent = previousMonthDay;
+            day.classList.add("outside-month");
+            day.setAttribute("aria-label", `${previousMonthDay} do mês anterior`);
+          } else if (dateNumber > daysInMonth) {
+            const nextMonthDay = dateNumber - daysInMonth;
+            day.textContent = nextMonthDay;
+            day.classList.add("outside-month");
+            day.setAttribute("aria-label", `${nextMonthDay} do próximo mês`);
+          } else {
+            const dayNumber = document.createElement("span");
+            dayNumber.className = "day-number";
+            dayNumber.textContent = dateNumber;
+            day.append(dayNumber);
+            const dateKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(dateNumber).padStart(2, "0")}`;
+            const dayVacations = vacations.filter(
+              (vacation) => vacation.startDate <= dateKey && vacation.endDate >= dateKey
+            );
+            const vacationNames = dayVacations.map((vacation) => vacation.employeeName);
+            day.setAttribute(
+              "aria-label",
+              `${dateNumber} de ${monthFormatter.format(displayedMonth)}${vacationNames.length ? `: Férias de ${vacationNames.join(", ")}` : ""}`
+            );
+            renderVacationsForDay(day, dateKey);
+
+            if (
+              year === today.getFullYear() &&
+              month === today.getMonth() &&
+              dateNumber === today.getDate()
+            ) {
+              day.classList.add("is-today");
+              day.setAttribute("aria-current", "date");
+            }
+          }
+
+          calendarDays.append(day);
+        }
+      }
+
+      document.querySelector("#previous-month").addEventListener("click", () => {
+        displayedMonth = new Date(displayedMonth.getFullYear(), displayedMonth.getMonth() - 1, 1);
+        renderCalendar();
+      });
+
+      document.querySelector("#next-month").addEventListener("click", () => {
+        displayedMonth = new Date(displayedMonth.getFullYear(), displayedMonth.getMonth() + 1, 1);
+        renderCalendar();
+      });
+
+      document.querySelector("#current-month").addEventListener("click", () => {
+        displayedMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        renderCalendar();
+      });
+
+      vacationForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        vacationStartInput.setCustomValidity("");
+        vacationEndInput.setCustomValidity("");
+        const startDate = parseBrazilianDate(vacationStartInput.value);
+        const endDate = parseBrazilianDate(vacationEndInput.value);
+
+        if (!startDate) {
+          vacationStartInput.setCustomValidity("Informe uma data válida no formato dia/mês/ano (dd/mm/aaaa).");
+          vacationStartInput.reportValidity();
+          return;
+        }
+
+        if (!endDate) {
+          vacationEndInput.setCustomValidity("Informe uma data válida no formato dia/mês/ano (dd/mm/aaaa).");
+          vacationEndInput.reportValidity();
+          return;
+        }
+
+        if (endDate < startDate) {
+          vacationEndInput.setCustomValidity("A data de término deve ser igual ou posterior à data de início.");
+          vacationEndInput.reportValidity();
+          return;
+        }
+
+        vacations.push({
+          id: nextVacationId,
+          employeeName: employeeNameInput.value.trim(),
+          startDate,
+          endDate,
+        });
+        nextVacationId += 1;
+        const [startYear, startMonth] = startDate.split("-").map(Number);
+        displayedMonth = new Date(startYear, startMonth - 1, 1);
+        renderCalendar();
+        vacationForm.reset();
+      });
+
+      vacationForm.addEventListener("reset", () => {
+        for (const picker of datePickers) {
+          picker.value = "";
+        }
+      });
+
+      renderCalendar();
+    </script>
+  </body>
+</html>
